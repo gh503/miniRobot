@@ -1,4 +1,3 @@
-use dotenv::dotenv;
 use std::env;
 extern crate env_logger;
 extern crate log;
@@ -8,18 +7,24 @@ use log::{info, warn, error, debug, trace};
 use colored::*;
 
 use mini_robot::host;
+use mini_robot::config::Config;
 
-fn main() {
-    // 加载 .env 文件中的环境变量
-    dotenv().ok();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+// fn main() {
+    // 读取配置文件
+    let config_file = "config.toml";
+    let config = Config::new(config_file)?;
+    // 更新环境变量
+    env::set_var("RUST_LOG", config.env.rust_log);
+    env::set_var("RUST_BACKTRACE", config.env.rust_backtrace.to_string());
     
     // 初始化日志记录
     env_logger::init();
 
-    let app_name = env::var("APP_NAME").unwrap_or_else(|_| "Unknown".to_string());
-    let app_env = env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
-    let app_port: u16 = env::var("APP_PORT").unwrap_or_else(|_| "8080".to_string()).parse().expect("APP_PORT must be a number");
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let app_name = config.general.app_name;
+    let app_env = config.general.app_environment;
+    let app_port: u16 = config.general.app_port;
+    let database_url = config.database.url;
 
     info!("Starting {} in {} mode on port {}", app_name, app_env, app_port);
     debug!("Connecting to database at {}", database_url);
@@ -35,11 +40,6 @@ fn main() {
     let host = host::Host::new();
     // 显示主机信息
     host.display();
-    // json格式化
-    // println!("json字符串：{}", host.to_json());
-    // 过滤进程
-    let pid_or_keyword = "1";
-    let filter = Some(host::Filter::ByPid(&pid_or_keyword));
-    println!("filter: {}, result:\n{}", pid_or_keyword, host.get_filtered_processes_as_json(filter.clone()));
-    println!("filter: {}, result:\n{:#?}", pid_or_keyword, host.get_filtered_processes_as_list(Some(filter.unwrap())));
+
+    Ok(())
 }

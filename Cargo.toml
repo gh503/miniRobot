@@ -1,6 +1,8 @@
 [package]
 name = "mini_robot"
 version = "0.1.0"
+authors = ["gh503 <angus_robot@163.com>"]
+about = "Good Friend Make Your Hands Free"
 edition = "2021"
 
 [dependencies]
@@ -9,7 +11,37 @@ pnet = "0.34.0"
 log = "0.4"
 env_logger = "0.10"
 colored = "2.0"
-dotenv = "0.15"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sysinfo = "0.30.12"
+
+toml = "0.8.13"
+
+tonic = { version = "0.11.0", features = ["transport"] }
+warp = "0.3.7"
+futures = "0.3.30"
+tokio = { version = "1.37.0", features = ["full"] }
+chrono = "0.4.38"
+prost = "0.12.6"
+
+rayon = "1.10.0"
+clap = { version = "4.5.4", features = ["derive"] }
+
+ring = "0.17.8"
+untrusted = "0.9.0"
+base64 = "0.22.1"
+
+argon2 = "0.5.3"
+rand = "0.8.5"
+
+openssl = "0.10.64"
+jsonwebtoken = "9.3.0"
+
+[build-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8.13"
+tonic-build = "0.11.0"
+
+[[test]]
+name = "integration_test"
+path = "tests/integration_test.rs"

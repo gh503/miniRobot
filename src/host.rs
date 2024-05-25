@@ -24,6 +24,7 @@ pub struct Host {
     disk_info: DiskInfo,
     mem_info: MemInfo,
     net_info: Vec<NetworkInterface>,
+    active_net_info: Vec<NetworkInterface>,
     process_info: Vec<ProcessInfo>,
 }
 
@@ -31,6 +32,7 @@ pub struct Host {
 pub enum Filter<'a> {
     ByPid(&'a str),
     ByKeyword(&'a str),
+    ByMask(&'a str),
 }
 
 impl Host {
@@ -44,7 +46,7 @@ impl Host {
         let cpu_info = CpuInfo::new();
         let disk_info = DiskInfo::new();
         let mem_info = MemInfo::new();
-        let net_info = get_network_interfaces();
+        let (net_info , active_net_info) = get_nics();
         let process_info = gather_process_info();
 
         Host {
@@ -54,6 +56,7 @@ impl Host {
             disk_info,
             mem_info,
             net_info,
+            active_net_info,
             process_info,
         }
     }
@@ -82,6 +85,10 @@ impl Host {
         &self.net_info
     }
 
+    pub fn get_active_net_info(&self) -> &Vec<NetworkInterface> {
+        &self.active_net_info
+    }
+
     pub fn get_process_info(&self) -> &Vec<ProcessInfo> {
         &self.process_info
     }
@@ -92,7 +99,7 @@ impl Host {
         self.cpu_info.display();
         self.disk_info.display();
         self.mem_info.display();
-        for nic in self.get_net_info().iter() {
+        for nic in self.get_active_net_info().iter() {
             nic.display();
         }
     }
@@ -101,20 +108,21 @@ impl Host {
         serde_json::to_string(&self).unwrap_or_else(|_| "{}".to_string())
     }
 
-    pub fn get_filtered_processes_as_json(&self, filter: Option<Filter>) -> String {
+    pub fn get_filtered_processes_as_json(&self, filter: Option<Filter>, mask: Option<Filter>) -> String {
         let processes = gather_process_info();
-        let filtered_processes = filter_processes(&processes, filter);
+        let filtered_processes = filter_processes(&processes, filter, mask);
         serde_json::to_string(&filtered_processes).unwrap_or_else(|_| "[]".to_string())
     }
 
-    pub fn get_filtered_processes_as_list(&self, filter: Option<Filter>) -> Vec<ProcessInfo> {
+    pub fn get_filtered_processes_as_list(&self, filter: Option<Filter>, mask: Option<Filter>) -> Vec<ProcessInfo> {
         let processes = gather_process_info();
-        filter_processes(&processes, filter)
+        filter_processes(&processes, filter, mask)
     }
 }
 
-pub fn get_network_interfaces() -> Vec<NetworkInterface> {
+pub fn get_nics() -> (Vec<NetworkInterface>, Vec<NetworkInterface>) {
     let mut interfaces_info = Vec::new();
+    let mut active_interfaces_info = Vec::new();
 
     // 获取所有网络接口
     let interfaces = datalink::interfaces();
@@ -134,9 +142,12 @@ pub fn get_network_interfaces() -> Vec<NetworkInterface> {
         }
 
         interfaces_info.push(NetworkInterface::new(&name, &mac, &status, &ipv4_addrs, &ipv6_addrs));
+        if status == "UP".to_string() && (ipv4_addrs.len() != 0 || ipv6_addrs.len() != 0) {
+            active_interfaces_info.push(NetworkInterface::new(&name, &mac, &status, &ipv4_addrs, &ipv6_addrs));
+        }
     }
 
-    interfaces_info
+    (interfaces_info, active_interfaces_info)
 }
 
 fn gather_process_info() -> Vec<ProcessInfo> {
@@ -152,12 +163,24 @@ fn gather_process_info() -> Vec<ProcessInfo> {
     }).collect()
 }
 
-fn filter_processes(processes: &[ProcessInfo], filter: Option<Filter>) -> Vec<ProcessInfo> {
+fn filter_processes(processes: &[ProcessInfo], filter: Option<Filter>, mask: Option<Filter>) -> Vec<ProcessInfo> {
     processes.iter().filter(|process| {
-        match &filter {
+        // 根据filter决定是否包含进程
+        let include = match &filter {
             Some(Filter::ByPid(pid)) => &process.pid == pid,
             Some(Filter::ByKeyword(keyword)) => process.command.contains(keyword) || process.full_command.contains(keyword),
+            Some(Filter::ByMask(_)) => true,
             None => true,
+        };
+
+        // 如果include为true，再根据mask决定是否排除进程
+        if include {
+            match &mask {
+                Some(Filter::ByKeyword(mask_keyword)) => !process.full_command.contains(mask_keyword),
+                _ => true,
+            }
+        } else {
+            false
         }
     }).cloned().collect()
 }

@@ -1,0 +1,20 @@
+[env]
+rust_log = "debug"
+rust_backtrace = 1
+
+[general]
+app_name = "mini_robot"
+app_environment = "development"
+app_node_id = "node1"
+app_port = 50050
+peers_file = "peers.json"
+
+[security]
+algorithm = "AES"
+key = "your_encryption_key_here"
+auth_password = "your_auth_password_here"
+username = "your_username_here"
+password = "your_password_here"
+
+[database]
+url = "postgres://user:password@localhost/dbname"

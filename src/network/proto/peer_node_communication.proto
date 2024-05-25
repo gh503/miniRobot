@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+// 定义节点间通信的服务和消息
+service PeerNodeCommunication {
+    rpc SendMessage (MessageRequest) returns (MessageReply) {}
+    rpc RequestData (DataRequest) returns (DataReply) {}
+    rpc UploadFile (FileUploadRequest) returns (FileUploadResponse) {}
+}
+
+message MessageRequest {
+    string message = 1;       // 要发送的消息内容
+    string sender_id = 2;     // 发送者标识
+    string recipient_id = 3;  // 接收者标识
+    int64 timestamp = 4;      // 消息发送的时间戳
+    string message_type = 5;  // 消息类型，如文本、命令等
+}
+
+message MessageReply {
+    string response = 1;      // 收到的消息响应内容
+    int64 received_timestamp = 2; // 消息接收的时间戳
+    bool success = 3;         // 消息是否成功处理
+    string error_message = 4; // 失败时的错误信息
+}
+
+message DataRequest {
+    string data_type = 1;     // 请求的数据类型
+    string request_id = 2;    // 请求标识
+}
+
+message DataReply {
+    string data = 1;          // 返回的数据
+    string request_id = 2;    // 请求标识
+    bool success = 3;         // 请求是否成功
+    string error_message = 4; // 失败时的错误信息
+}
+
+message FileUploadRequest {
+    bytes file_content = 1;   // 文件内容
+    string file_name = 2;     // 文件名称
+    string sender_id = 3;     // 发送者标识
+    string recipient_id = 4;  // 接收者标识
+}
+
+message FileUploadResponse {
+    bool success = 1;         // 文件上传是否成功
+    string error_message = 2; // 失败时的错误信息
+}
