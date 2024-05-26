@@ -3,5 +3,4 @@ pub mod security;
 pub mod host;
 pub mod local;
 // pub mod network;
-pub mod tests;
 pub mod version;

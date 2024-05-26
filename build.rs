@@ -3,7 +3,7 @@ use serde::Deserialize;
 use std::error::Error;
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -34,24 +34,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     clean_additional();
 
+    // 生成src/version.rs
     let config = Config::new("Cargo.toml")?;
-    let about = format!("{} By Rust {}", config.package.about, config.package.edition);
+    generate_version_rs(config);
+    
+    pyo3_build_config::use_pyo3_cfgs();
+    println!("cargo:rustc-link-lib=python3.10");
 
-    let mut file = fs::File::create("src/version.rs").expect("Failed to create version.rs");
-    writeln!(file, "pub const NAME: &str = \"{}\";", config.package.name).expect("Failed to write to version.rs");
-    writeln!(file, "pub const VERSION: &str = \"{}\";", config.package.version).expect("Failed to write to version.rs");
-    writeln!(file, "pub const AUTHORS: &str = \"{}\";", config.package.authors.join(", ")).expect("Failed to write to version.rs");
-    writeln!(file, "pub const ABOUT: &str = \"{}\";", about).expect("Failed to write to version.rs");
+    // Call pyoxidizer to build the embedded Python interpreter
+    std::process::Command::new("pyoxidizer")
+        .arg("build")
+        .status()
+        .expect("Failed to run PyOxidizer");
 
     Ok(())
 }
 
 fn clean_additional() {
-    let files_to_clean = vec![
+    let files_to_clean: Vec<PathBuf> = vec![
         Path::new("src").join("version.rs"),
     ];
-    let dirs_to_clean = vec![
-        Path::new("src").join("network").join("generated"),
+    let dirs_to_clean: Vec<String>= vec![
     ];
 
     for f in files_to_clean {
@@ -64,9 +67,19 @@ fn clean_additional() {
 
     for d in dirs_to_clean {
         if let Err(e) = fs::remove_dir_all(&d) {
-            eprintln!("Failed to clean directory {:?}: {}", d, e);
+            println!("Failed to clean directory {:?}: {}", d, e);
         } else {
             println!("Cleaned directory: {:?}", d);
         }
     }
+}
+
+fn generate_version_rs(config: Config) {
+    let about = format!("{} By Rust {}", config.package.about, config.package.edition);
+
+    let mut file = fs::File::create("src/version.rs").expect("Failed to create version.rs");
+    writeln!(file, "pub const NAME: &str = \"{}\";", config.package.name).expect("Failed to write to version.rs");
+    writeln!(file, "pub const VERSION: &str = \"{}\";", config.package.version).expect("Failed to write to version.rs");
+    writeln!(file, "pub const AUTHORS: &str = \"{}\";", config.package.authors.join(", ")).expect("Failed to write to version.rs");
+    writeln!(file, "pub const ABOUT: &str = \"{}\";", about).expect("Failed to write to version.rs");
 }

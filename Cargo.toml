@@ -34,6 +34,16 @@ base64 = "0.22.1"
 argon2 = "0.5.3"
 rand = "0.8.5"
 
+walkdir = "2.5.0"
+regex = "1.10.4"
+
+syn = { version = "2.0.66", features = ["full"] }
+quote = "1.0.36"
+# 集成测试
+pyo3 = { version = "0.21.2", features = ["extension-module", "auto-initialize"] }
+rust-embed = "8.4.0"
+pyoxidizer = "0.24.0"
+
 openssl = "0.10.64"
 jsonwebtoken = "9.3.0"
 
@@ -41,6 +51,13 @@ jsonwebtoken = "9.3.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8.13"
 tonic-build = "0.11.0"
+
+# 集成测试编译
+pyo3-build-config = "0.21.2"
+pyoxidizer = "0.24.0"
+
+[package.metadata]
+pyo3 = { extension-module = false }
 
 [[test]]
 name = "integration_test"
