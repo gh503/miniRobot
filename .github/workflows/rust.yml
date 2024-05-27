@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-  release:
-    types: [created, published]
 
 jobs:
   build:
@@ -38,11 +36,17 @@ jobs:
       if: success()
       run: |
         if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          ls -la target/debug/*
           cp target/debug/mini_robot{,_info,_test} upload_bin/linux/
+          ls -la upload_bin/linux/*
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          ls -la target/debug/*
           cp target/debug/mini_robot{,_info,_test} upload_bin/macos/
+          ls -la upload_bin/macos/*
         elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+          ls -la target/debug/*
           cp target/debug/mini_robot{,_info,_test}.exe upload_bin/windows/
+          ls -la upload_bin/windows/*
         fi
 
     - name: Upload binary
@@ -50,7 +54,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: binaries-${{ matrix.os }}
-        path: upload_bin/${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'macos-latest' && 'macos' || 'windows'}}
+        path: upload_bin/
 
   create_tag:
     needs: build
