@@ -24,52 +24,81 @@ jobs:
         override: true
 
     - name: Build project
-      run: cargo build --verbose --all-targets
+      run: cargo build --release --all-targets
 
     - name: Run tests
-      run: cargo test --verbose -- --nocapture
+      run: cargo test -- --nocapture
 
     - name: Create bin directory
-      run: mkdir -p upload_bin
+      run: mkdir -p bin/{linux,macos,windows}
 
     - name: Publish binary
       if: success()
       run: |
+        (
+          cd target/release
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            cp target/debug/mini_robot target/debug/mini_robot_info target/debug/mini_robot_test upload_bin/
+            tar -czvf ../../bin/linux/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            cp target/debug/mini_robot target/debug/mini_robot_info target/debug/mini_robot_test upload_bin/
+            tar -czvf ../../bin/macos/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            cp target/debug/mini_robot.exe target/debug/mini_robot_info.exe target/debug/mini_robot_test.exe upload_bin/
+            tar -czvf ../../bin/windows/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
           fi
+        )
 
     - name: Upload binary
       if: success()
       uses: actions/upload-artifact@v2
       with:
-        name: miniRobot-${{ matrix.os }}
-        path: upload_bin/
+        # Action Build产物: Artifacts 
+        name: binaries-${{ matrix.os }}
+        # Build产物本地的相对路径，目录下的所有文件都会以zip包格式上传。当然Linux/MacOS/Windows产物事先区分好目录。
+        path: ./bin/
 
   release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Download binaries
+    # 后面的Download动作和Upload参数对应
+    - name: Download Linux binaries
       uses: actions/download-artifact@v2
       with:
-        name: miniRobot-ubuntu-latest
-        path: ./upload_bin/
+        name: binaries-ubuntu-latest
+        path: ./bin/linux/
 
     - name: Download macOS binaries
       uses: actions/download-artifact@v2
       with:
-        name: miniRobot-macos-latest
-        path: ./upload_bin/
+        name: binaries-macos-latest
+        path: ./bin/macos/
+
+    # - name: Download Windows binaries
+    #   uses: actions/download-artifact@v2
+    #   with:
+    #     name: binaries-windows-latest
+    #     path: ./bin/windows/
+
+    - name: Validate downloaded files
+      run: |
+        pwd
+        ls -la ./
+        ls -la ./bin/
+        ls -la ./bin/linux/*
+        ls -la ./bin/macos/*
+        # ls -la ./bin/windows/*
+        ls -la ./bin/linux/mini_robot_binaries.tar.gz
+        ls -la ./bin/macos/mini_robot_binaries.tar.gz
+        # ls -la ./bin/windows/mini_robot_binaries.tar.gz
+        if [ ! -f ./bin/linux/mini_robot_binaries.tar.gz ]; then echo "linux binary not found!"; exit 1; fi
+        if [ ! -f ./bin/macos/mini_robot_binaries.tar.gz ]; then echo "macOS binary not found!"; exit 1; fi
+        # if [ ! -f ./bin/windows/mini_robot_binaries.tar.gz ]; then echo "windows binary not found!"; exit 1; fi
+        echo "All binaries are present."
 
     - name: Create GitHub Release
       id: create_release
@@ -89,9 +118,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./miniRobot-ubuntu-latest.zip
-        asset_name: miniRobot-ubuntu-latest.zip
-        asset_content_type: application/zip
+        asset_path: ./bin/linux/mini_robot_binaries.tar.gz
+        asset_name: mini_robot_binaries_ubuntu-latest.tar.gz
+        asset_content_type: application/gzip
 
     - name: Upload macOS Release Assets
       if: steps.create_release.outputs.upload_url
@@ -100,6 +129,17 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./miniRobot-ubuntu-latest.zip
-        asset_name: miniRobot-ubuntu-latest.zip
-        asset_content_type: application/zip
+        asset_path: ./bin/macos/mini_robot_binaries.tar.gz
+        asset_name: mini_robot_binaries_macos-latest.tar.gz
+        asset_content_type: application/gzip
+
+    # - name: Upload Windows Release Assets
+    #   if: steps.create_release.outputs.upload_url
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #     asset_path: ./bin/windows/mini_robot_binaries.tar.gz
+    #     asset_name: mini_robot_binaries_windows-latest.tar.gz
+    #     asset_content_type: application/gzip

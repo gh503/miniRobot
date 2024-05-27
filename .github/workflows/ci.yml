@@ -24,7 +24,33 @@ jobs:
         override: true
 
     - name: Build project
-      run: cargo build --verbose --all-targets
+      run: cargo build --release --all-targets
 
     - name: Run tests
-      run: cargo test --verbose -- --nocapture
+      run: cargo test -- --nocapture
+
+    - name: Create bin directory
+      run: mkdir -p bin/{linux,macos,windows}
+
+    - name: Publish binary
+      if: success()
+      run: |
+        (
+          cd target/release
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            tar -czvf ../../bin/linux/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            tar -czvf ../../bin/macos/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            tar -czvf ../../bin/windows/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
+          fi
+        )
+
+    - name: Upload binary
+      if: success()
+      uses: actions/upload-artifact@v2
+      with:
+        # Action Build产物: Artifacts 
+        name: binaries-${{ matrix.os }}
+        # Build产物本地的相对路径，目录下的所有文件都会以zip包格式上传。当然Linux/MacOS/Windows产物事先区分好目录。
+        path: ./bin/
