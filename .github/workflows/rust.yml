@@ -103,8 +103,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
-        tag_name: ${{ steps.get_version.outputs.VERSION }}
-        release_name: Release ${{ steps.get_version.outputs.VERSION }}
+        tag_name: ${{ needs.create_tag.outputs.VERSION }}
+        release_name: Release ${{ needs.create_tag.outputs.VERSION }}
         draft: false
         prerelease: false
 
