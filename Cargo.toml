@@ -1,6 +1,6 @@
 [package]
 name = "mini_robot"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["gh503 <angus_robot@163.com>"]
 about = "Good Friend Make Your Hands Free"
 edition = "2021"
