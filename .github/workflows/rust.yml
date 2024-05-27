@@ -72,7 +72,7 @@ jobs:
       id: create_tag
       run: |
         git tag ${{ steps.get_version.outputs.VERSION }}
-        git push origin ${{ steps.get_version.outputs.VERSION }} --force
+        git push --tags
       env:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
 
