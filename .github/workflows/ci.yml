@@ -32,14 +32,16 @@ jobs:
     - name: Publish binary
       if: success()
       run: |
+        # 归档产物到目录minirobot
+        mkdir -p minirobot/ bin/
         targets=(
             minirobot minirobot_info minirobot_test
             libminirobot.rlib
         )
+        cp ${targets[@]} minirobot/
         (
-          mkdir -p bin/
           cd target/release
-          tar -czvf ../../bin/minirobot_binaries_${{ matrix.os }}.tar.gz ${targets[@]}
+          tar -czvf ../../bin/minirobot_binaries_${{ matrix.os }}.tar.gz minirobot/
         )
 
     - name: Upload release binary
