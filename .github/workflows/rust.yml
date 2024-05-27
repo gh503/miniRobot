@@ -55,6 +55,8 @@ jobs:
   create_tag:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -68,8 +70,7 @@ jobs:
     - name: Create tag
       id: create_tag
       run: |
-        git config --global user.email "angus_robot@163.com"
-        git config --global user.name "gh503"
+        git config -l
         git tag $VERSION
         git push origin $VERSION
       env:
