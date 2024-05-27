@@ -89,7 +89,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./upload_bin/miniRobot-ubuntu-latest.zip
+        asset_path: ./miniRobot-ubuntu-latest.zip
         asset_name: miniRobot-ubuntu-latest.zip
         asset_content_type: application/zip
 
@@ -100,6 +100,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./upload_bin/miniRobot-ubuntu-latest.zip
+        asset_path: ./miniRobot-ubuntu-latest.zip
         asset_name: miniRobot-ubuntu-latest.zip
         asset_content_type: application/zip
