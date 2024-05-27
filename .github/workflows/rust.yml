@@ -34,12 +34,13 @@ jobs:
     - name: Publish binary
       if: success()  # Only run this step if the previous steps were successful
       run: |
+        mkdir upload_bin
         if [[ "$OSTYPE" == "linux-gnu" ]]; then
-          cp target/debug/mini_robot{,_info,_test} bin/
+          cp target/debug/mini_robot{,_info,_test} upload_bin/
         elif [[ "$OSTYPE" == "darwin"* ]]; then
-          cp target/debug/mini_robot{,_info,_test} bin/
+          cp target/debug/mini_robot{,_info,_test} upload_bin/
         elif [[ "$OSTYPE" == "msys" ]]; then
-          cp target/debug/mini_robot{,_info,_test}.exe bin/
+          cp target/debug/mini_robot{,_info,_test}.exe upload_bin/
         fi
 
     - name: Upload binary
@@ -47,4 +48,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: binaries
-        path: bin/mini_robot
+        path: upload_bin/
