@@ -32,17 +32,17 @@ jobs:
       run: cargo test --verbose -- --nocapture
 
     - name: Create bin directory
-      run: mkdir -p upload_bin
+      run: mkdir -p bin/{linux,macos,windows}
 
     - name: Publish binary
       if: success()
       run: |
         if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-          cp target/debug/mini_robot{,_info,_test} upload_bin/
+          cp target/debug/mini_robot{,_info,_test} bin/linux/
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-          cp target/debug/mini_robot{,_info,_test} upload_bin/
+          cp target/debug/mini_robot{,_info,_test} bin/macos/
         elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-          cp target/debug/mini_robot{,_info,_test}.exe upload_bin/
+          cp target/debug/mini_robot{,_info,_test}.exe bin/windows/
         fi
 
     - name: Upload binary
