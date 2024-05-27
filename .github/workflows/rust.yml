@@ -59,14 +59,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Extract version from Cargo.toml
+      id: get_version
+      run: |
+        VERSION=$(grep '^version' Cargo.toml | sed 's/version = "//' | sed 's/"//')
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
     - name: Create tag
       id: create_tag
       run: |
-        TAG_NAME=v$(date +'%Y%m%d%H%M%S')
-        git tag $TAG_NAME
-        git push origin $TAG_NAME
+        git config --global user.email "angus_robot@163.com"
+        git config --global user.name "gh503"
+        git tag $VERSION
+        git push origin $VERSION
       env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
 
   release:
     needs: create_tag
