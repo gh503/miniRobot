@@ -1,9 +1,9 @@
-name: miniRobot CI
+name: miniRobot Release
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'  # 任何 tag 被推送时触发工作流
 
 jobs:
   build:
@@ -36,17 +36,11 @@ jobs:
       if: success()
       run: |
         if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-          ls -la target/debug/*
           cp target/debug/mini_robot{,_info,_test} upload_bin/linux/
-          ls -la upload_bin/linux/*
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-          ls -la target/debug/*
           cp target/debug/mini_robot{,_info,_test} upload_bin/macos/
-          ls -la upload_bin/macos/*
         elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-          ls -la target/debug/*
           cp target/debug/mini_robot{,_info,_test}.exe upload_bin/windows/
-          ls -la upload_bin/windows/*
         fi
 
     - name: Upload binary
@@ -56,38 +50,8 @@ jobs:
         name: binaries-${{ matrix.os }}
         path: upload_bin/
 
-  create_tag:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Extract version from Cargo.toml
-      id: get_version
-      run: |
-        VERSION=$(grep '^version' Cargo.toml | sed 's/version = "//' | sed 's/"//')
-        echo "$VERSION" > version.txt
-
-    - name: Create tag
-      id: create_tag
-      run: |
-        VERSION=$(cat version.txt)
-        git tag $VERSION
-        git push --tags --force
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
-
-    - name: Upload version file
-      uses: actions/upload-artifact@v2
-      with:
-        name: version
-        path: version.txt
-
   release:
-    needs: create_tag
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -107,26 +71,14 @@ jobs:
         name: binaries-macos-latest
         path: ./upload_bin/macos
 
-    - name: Download version file
-      uses: actions/download-artifact@v2
-      with:
-        name: version
-        path: ./
-
-    - name: Read version
-      id: read_version
-      run: |
-        VERSION=$(cat version.txt)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
-        tag_name: ${{ env.VERSION }}
-        release_name: Release ${{ env.VERSION }}
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
 
@@ -138,8 +90,8 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./upload_bin/linux/*
-        asset_name: minirobot_linux_binaries.zip
-        asset_content_type: application/zip
+        asset_name: minirobot_linux_binaries
+        asset_content_type: application/octet-stream
 
     - name: Upload macOS Release Assets
       if: steps.create_release.outputs.upload_url
@@ -149,5 +101,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./upload_bin/macos/*
-        asset_name: minirobot_macos_binaries.zip
-        asset_content_type: application/zip
+        asset_name: minirobot_macos_binaries
+        asset_content_type: application/octet-stream
