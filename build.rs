@@ -37,15 +37,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 生成src/version.rs
     let config = Config::new("Cargo.toml")?;
     generate_version_rs(config);
-    
-    pyo3_build_config::use_pyo3_cfgs();
-    println!("cargo:rustc-link-lib=python3.10");
-
-    // Call pyoxidizer to build the embedded Python interpreter
-    std::process::Command::new("pyoxidizer")
-        .arg("build")
-        .status()
-        .expect("Failed to run PyOxidizer");
 
     Ok(())
 }
