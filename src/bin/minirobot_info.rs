@@ -1,8 +1,8 @@
 extern crate clap;
 use clap::{Arg, Command};
 
-use mini_robot::host;
-use mini_robot::version;
+use minirobot::host;
+use minirobot::version;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 创建命令行参数解析器

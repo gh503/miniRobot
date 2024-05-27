@@ -27,23 +27,19 @@ jobs:
       run: cargo build --release --all-targets
 
     - name: Run tests
-      run: cargo test -- --nocapture
-
-    - name: Create bin directory
-      run: mkdir -p bin/{linux,macos,windows}
+      run: cargo test --all-targets -- --nocapture
 
     - name: Publish binary
       if: success()
       run: |
+        targets=(
+            minirobot minirobot_info minirobot_test
+            libminirobot.rlib
+        )
         (
+          mkdir -p bin/
           cd target/release
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            tar -czvf ../../bin/linux/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            tar -czvf ../../bin/macos/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            tar -czvf ../../bin/windows/mini_robot_binaries.tar.gz mini_robot mini_robot_info mini_robot_test
-          fi
+          tar -czvf ../../bin/minirobot_binaries_${{ matrix.os }}.tar.gz ${targets[@]}
         )
 
     - name: Upload binary
@@ -70,35 +66,19 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: binaries-ubuntu-latest
-        path: ./bin/linux/
+        path: ./bin/
 
     - name: Download macOS binaries
       uses: actions/download-artifact@v2
       with:
         name: binaries-macos-latest
-        path: ./bin/macos/
+        path: ./bin/
 
     # - name: Download Windows binaries
     #   uses: actions/download-artifact@v2
     #   with:
     #     name: binaries-windows-latest
-    #     path: ./bin/windows/
-
-    - name: Validate downloaded files
-      run: |
-        pwd
-        ls -la ./
-        ls -la ./bin/
-        ls -la ./bin/linux/*
-        ls -la ./bin/macos/*
-        # ls -la ./bin/windows/*
-        ls -la ./bin/linux/mini_robot_binaries.tar.gz
-        ls -la ./bin/macos/mini_robot_binaries.tar.gz
-        # ls -la ./bin/windows/mini_robot_binaries.tar.gz
-        if [ ! -f ./bin/linux/mini_robot_binaries.tar.gz ]; then echo "linux binary not found!"; exit 1; fi
-        if [ ! -f ./bin/macos/mini_robot_binaries.tar.gz ]; then echo "macOS binary not found!"; exit 1; fi
-        # if [ ! -f ./bin/windows/mini_robot_binaries.tar.gz ]; then echo "windows binary not found!"; exit 1; fi
-        echo "All binaries are present."
+    #     path: ./bin/
 
     - name: Create GitHub Release
       id: create_release
@@ -118,8 +98,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./bin/linux/mini_robot_binaries.tar.gz
-        asset_name: mini_robot_binaries_ubuntu-latest.tar.gz
+        asset_path: ./bin/minirobot_binaries_ubuntu-latest.tar.gz
+        asset_name: minirobot_binaries_ubuntu-latest.tar.gz
         asset_content_type: application/gzip
 
     - name: Upload macOS Release Assets
@@ -129,8 +109,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./bin/macos/mini_robot_binaries.tar.gz
-        asset_name: mini_robot_binaries_macos-latest.tar.gz
+        asset_path: ./bin/minirobot_binaries_macos-latest.tar.gz
+        asset_name: minirobot_binaries_macos-latest.tar.gz
         asset_content_type: application/gzip
 
     # - name: Upload Windows Release Assets
@@ -140,6 +120,6 @@ jobs:
     #     GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: ./bin/windows/mini_robot_binaries.tar.gz
-    #     asset_name: mini_robot_binaries_windows-latest.tar.gz
+    #     asset_path: ./bin/minirobot_binaries_windows-latest.tar.gz
+    #     asset_name: minirobot_binaries_windows-latest.tar.gz
     #     asset_content_type: application/gzip

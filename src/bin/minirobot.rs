@@ -6,8 +6,8 @@ extern crate colored;
 use log::{info, warn, error, debug, trace};
 use colored::*;
 
-use mini_robot::host;
-use mini_robot::config::Config;
+use minirobot::host;
+use minirobot::config::Config;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 // fn main() {

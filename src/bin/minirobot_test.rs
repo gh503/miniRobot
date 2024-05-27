@@ -1,5 +1,5 @@
 use clap::{Arg, Command};
-use mini_robot::version;
+use minirobot::version;
 
 fn main() {
     let matches = Command::new(version::NAME)
