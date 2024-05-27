@@ -50,7 +50,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: binaries-${{ matrix.os }}
-        path: upload_bin/
+        path: bin/
 
   release:
     needs: build
