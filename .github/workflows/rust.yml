@@ -1,22 +1,50 @@
-name: Rust
+name: Rust CI
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
-env:
-  CARGO_TERM_COLOR: always
+    branches:
+      - main
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        rust: [stable, beta, nightly]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+
+    - name: Build project
       run: cargo build --verbose --all-targets
+
     - name: Run tests
       run: cargo test --verbose -- --nocapture
+
+    - name: Publish binary
+      if: success()  # Only run this step if the previous steps were successful
+      run: |
+        if [[ "$OSTYPE" == "linux-gnu" ]]; then
+          cp target/debug/my_binary bin/
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+          cp target/debug/my_binary bin/
+        elif [[ "$OSTYPE" == "msys" ]]; then
+          cp target/debug/my_binary.exe bin/
+        fi
+
+    - name: Upload binary
+      if: success()  # Only run this step if the previous steps were successful
+      uses: actions/upload-artifact@v2
+      with:
+        name: my_binary
+        path: bin/my_binary
