@@ -65,14 +65,14 @@ jobs:
       id: get_version
       run: |
         VERSION=$(grep '^version' Cargo.toml | sed 's/version = "//' | sed 's/"//')
-        echo "VERSION=$VERSION" > version.txt
+        echo "$VERSION" > version.txt
 
     - name: Create tag
       id: create_tag
       run: |
         VERSION=$(cat version.txt)
         git tag $VERSION
-        git push origin $VERSION --force
+        git push --tags --force
       env:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
 
