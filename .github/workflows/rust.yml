@@ -52,7 +52,7 @@ jobs:
         name: binaries-${{ matrix.os }}
         path: upload_bin/
 
-  create_tag:
+  release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -76,15 +76,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
 
-  release:
-    needs: create_tag
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
     - name: Download Linux binaries
       uses: actions/download-artifact@v2
       with:
@@ -103,8 +94,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
-        tag_name: ${{ needs.create_tag.outputs.VERSION }}
-        release_name: Release ${{ needs.create_tag.outputs.VERSION }}
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
+        release_name: Release ${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: false
 
