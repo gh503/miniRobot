@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+  release:
+    types: [created, published]
 
 jobs:
   build:
@@ -13,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        rust: [stable, beta, nightly]
+        rust: [stable]
 
     steps:
     - name: Checkout repository
@@ -31,21 +33,75 @@ jobs:
     - name: Run tests
       run: cargo test --verbose -- --nocapture
 
+    - name: Create bin directory
+      run: mkdir -p upload_bin
+
     - name: Publish binary
-      if: success()  # Only run this step if the previous steps were successful
+      if: success()
       run: |
-        mkdir upload_bin
-        if [[ "$OSTYPE" == "linux-gnu" ]]; then
+        if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
           cp target/debug/mini_robot{,_info,_test} upload_bin/
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
+        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
           cp target/debug/mini_robot{,_info,_test} upload_bin/
-        elif [[ "$OSTYPE" == "msys" ]]; then
+        elif [ "${{ matrix.os }}" = "windows-latest" ]; then
           cp target/debug/mini_robot{,_info,_test}.exe upload_bin/
         fi
 
     - name: Upload binary
-      if: success()  # Only run this step if the previous steps were successful
+      if: success()
       uses: actions/upload-artifact@v2
       with:
-        name: binaries
+        name: binaries-${{ matrix.os }}
         path: upload_bin/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Download Linux binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: binaries-ubuntu-latest
+        path: ./bin/linux
+
+    - name: Download macOS binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: binaries-macos-latest
+        path: ./bin/macos
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Linux Release Assets
+      if: steps.create_release.outputs.upload_url
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./bin/linux/*
+        asset_name: linux_binaries.zip
+        asset_content_type: application/zip
+
+    - name: Upload macOS Release Assets
+      if: steps.create_release.outputs.upload_url
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./bin/macos/*
+        asset_name: macos_binaries.zip
+        asset_content_type: application/zip
