@@ -1,4 +1,4 @@
-name: Rust CI
+name: MiniRobot CI
 
 on:
   push:
@@ -9,9 +9,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -54,8 +52,24 @@ jobs:
         name: binaries-${{ matrix.os }}
         path: upload_bin/
 
-  release:
+  create_tag:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Create tag
+      id: create_tag
+      run: |
+        TAG_NAME=v$(date +'%Y%m%d%H%M%S')
+        git tag $TAG_NAME
+        git push origin $TAG_NAME
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
+
+  release:
+    needs: create_tag
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -77,10 +91,10 @@ jobs:
       id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ needs.create_tag.outputs.tag }}
+        release_name: Release ${{ needs.create_tag.outputs.tag }}
         draft: false
         prerelease: false
 
@@ -88,7 +102,7 @@ jobs:
       if: steps.create_release.outputs.upload_url
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./bin/linux/*
@@ -99,7 +113,7 @@ jobs:
       if: steps.create_release.outputs.upload_url
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./bin/macos/*
