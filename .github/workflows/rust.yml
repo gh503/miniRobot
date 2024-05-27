@@ -1,4 +1,4 @@
-name: MiniRobot CI
+name: Rust CI
 
 on:
   push:
@@ -55,8 +55,6 @@ jobs:
   create_tag:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -66,19 +64,21 @@ jobs:
       run: |
         VERSION=$(grep '^version' Cargo.toml | sed 's/version = "//' | sed 's/"//')
         echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "::set-output name=VERSION::$VERSION"
 
     - name: Create tag
       id: create_tag
       run: |
-        git config -l
-        git tag $VERSION
-        git push origin $VERSION
+        git tag ${{ steps.get_version.outputs.VERSION }}
+        git push origin ${{ steps.get_version.outputs.VERSION }}
       env:
         GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
 
   release:
     needs: create_tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -99,10 +99,10 @@ jobs:
       id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
-        tag_name: ${{ needs.create_tag.outputs.tag }}
-        release_name: Release ${{ needs.create_tag.outputs.tag }}
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
+        release_name: Release ${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: false
 
@@ -110,20 +110,20 @@ jobs:
       if: steps.create_release.outputs.upload_url
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./bin/linux/*
-        asset_name: linux_binaries.zip
+        asset_name: minirobot_linux_binaries.zip
         asset_content_type: application/zip
 
     - name: Upload macOS Release Assets
       if: steps.create_release.outputs.upload_url
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}  # 使用您的仓库工作流令牌
+        GITHUB_TOKEN: ${{ secrets.REPOS_WORKFLOW_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./bin/macos/*
-        asset_name: macos_binaries.zip
+        asset_name: minirobot_macos_binaries.zip
         asset_content_type: application/zip
