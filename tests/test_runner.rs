@@ -81,7 +81,7 @@ fn run_test_suite(suite_path: &str) -> Result<(), String> {
 }
 
 #[test]
-fn integration_tests() {
+fn integration() {
     // Global setup
     match run_python_script("tests/integration_test/global.py", &["setup"]) {
         Ok((_, stdout)) => println!("Global setup succeeded:\n{}", stdout),
