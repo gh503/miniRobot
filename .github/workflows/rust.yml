@@ -35,16 +35,16 @@ jobs:
       if: success()  # Only run this step if the previous steps were successful
       run: |
         if [[ "$OSTYPE" == "linux-gnu" ]]; then
-          cp target/debug/my_binary bin/
+          cp target/debug/mini_robot{,_info,_test} bin/
         elif [[ "$OSTYPE" == "darwin"* ]]; then
-          cp target/debug/my_binary bin/
+          cp target/debug/mini_robot{,_info,_test} bin/
         elif [[ "$OSTYPE" == "msys" ]]; then
-          cp target/debug/my_binary.exe bin/
+          cp target/debug/mini_robot{,_info,_test}.exe bin/
         fi
 
     - name: Upload binary
       if: success()  # Only run this step if the previous steps were successful
       uses: actions/upload-artifact@v2
       with:
-        name: my_binary
-        path: bin/my_binary
+        name: binaries
+        path: bin/mini_robot
