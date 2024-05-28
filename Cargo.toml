@@ -2,8 +2,14 @@
 name = "minirobot"
 version = "0.0.1"
 authors = ["gh503 <angus_robot@163.com>"]
-about = "Good Friend Make Your Hands Free"
+description = "Good Friend Make Your Hands Free"
 edition = "2021"
+repository = "https://github.com/gh503/miniRobot"
+readme = "README.md"
+license-file = "LICENSE"
+keywords = ["robot", "security", "ssh", "gRPC", "websocket"]
+categories = ["accessibility", "os", "network-programming", "web-programming"]
+build = "build.rs"
 
 [dependencies]
 hostname = "0.3.1"
@@ -45,6 +51,7 @@ jsonwebtoken = "9.3.0"
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }
+chrono = "0.4.38"
 toml = "0.8.13"
 tonic-build = "0.11.0"
 

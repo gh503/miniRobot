@@ -2,14 +2,15 @@ extern crate clap;
 use clap::{Arg, Command};
 
 use minirobot::host;
-use minirobot::version;
+include!(concat!(env!("OUT_DIR"), "/version.rs"));
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 创建命令行参数解析器
-    let matches = Command::new(version::NAME)
-        .version(version::VERSION)
-        .author(version::AUTHORS)
-        .about(version::ABOUT)
+    let matches = Command::new(NAME)
+        .version(VERSION)
+        .author(AUTHORS)
+        .about(ABOUT)
+        .after_help(COPYRIGHT)
         .arg(
             Arg::new("filter-out-str")
                 .short('f')

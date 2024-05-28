@@ -34,7 +34,7 @@ jobs:
       run: |
         # 归档产物到目录miniRobot
         targets=(
-            minirobot minirobot_info minirobot_test
+            minirobot minirobot_info minirobot_manage
             libminirobot.rlib
         )
         (

@@ -1,22 +1,23 @@
+use chrono::{Datelike, Utc};
 use toml;
 use serde::Deserialize;
+use std::env;
 use std::error::Error;
 use std::fs;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
     package: PackageConfig,
 }
-
 // 定义 Package 结构体
 #[derive(Debug, Deserialize)]
 struct PackageConfig {
     name: String,
     version: String,
     authors: Vec<String>,
-    about: String,
+    description: String,
     edition: String,
 }
 
@@ -31,9 +32,7 @@ impl Config {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
-    clean_additional();
-
+    
     // 生成src/version.rs
     let config = Config::new("Cargo.toml")?;
     generate_version_rs(config);
@@ -41,36 +40,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn clean_additional() {
-    let files_to_clean: Vec<PathBuf> = vec![
-        Path::new("src").join("version.rs"),
-    ];
-    let dirs_to_clean: Vec<String>= vec![
-    ];
-
-    for f in files_to_clean {
-        if let Err(e) = fs::remove_file(&f) {
-            eprintln!("Failed to delete file {:?}: {}.", f, e);
-        } else {
-            println!("Cleaned file {:?}", f);
-        }
-    }
-
-    for d in dirs_to_clean {
-        if let Err(e) = fs::remove_dir_all(&d) {
-            println!("Failed to clean directory {:?}: {}", d, e);
-        } else {
-            println!("Cleaned directory: {:?}", d);
-        }
-    }
-}
-
 fn generate_version_rs(config: Config) {
-    let about = format!("{} By Rust {}", config.package.about, config.package.edition);
+    let copyright = format!("
+Copyrigt (C) {} gh503. License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent permitted by law.", Utc::now().year());
+    let about = format!("{} By Rust Edtion {}.", config.package.description, config.package.edition);
 
-    let mut file = fs::File::create("src/version.rs").expect("Failed to create version.rs");
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let dest_path = Path::new(&out_dir).join("version.rs");
+    let mut file = fs::File::create(&dest_path).expect("Failed to create version.rs");
     writeln!(file, "pub const NAME: &str = \"{}\";", config.package.name).expect("Failed to write to version.rs");
     writeln!(file, "pub const VERSION: &str = \"{}\";", config.package.version).expect("Failed to write to version.rs");
     writeln!(file, "pub const AUTHORS: &str = \"{}\";", config.package.authors.join(", ")).expect("Failed to write to version.rs");
     writeln!(file, "pub const ABOUT: &str = \"{}\";", about).expect("Failed to write to version.rs");
+    writeln!(file, "pub const COPYRIGHT: &str = \"{}\";", copyright).expect("Failed to write to version.rs");
 }

@@ -1,11 +1,13 @@
 use clap::{Arg, Command};
-use minirobot::version;
+
+include!(concat!(env!("OUT_DIR"), "/version.rs"));
 
 fn main() {
-    let matches = Command::new(version::NAME)
-        .version(version::VERSION)
-        .author(version::AUTHORS)
-        .about(version::ABOUT)
+    let matches = Command::new(NAME)
+        .version(VERSION)
+        .author(AUTHORS)
+        .about(ABOUT)
+        .after_help(COPYRIGHT)
         .arg(
             Arg::new("peer")
                 .short('p')
