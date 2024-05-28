@@ -144,7 +144,7 @@ global/teardown
 ![](https://cdn.jsdelivr.net/gh/gh503/CDN@latest/shotimg/integration_test_details.png)
 
 ## 项目开源计划
-- [x] `Cargo`包平台`crate.io`
+- [x] `Cargo`包平台`crate.io`: [minirobot](https://crates.io/crates/minirobot)
 - [ ] `CompassCI`平台测试
 - [ ] `openEuler`社区
 - [ ] `Linux`社区
