@@ -1,5 +1,5 @@
 # miniRobot
-机器本地代理节点。应用场景：
+全平台机器本地代理节点。应用场景：
 - 即时查询主机信息：推荐 `minirobot_info`
 - 本地任务执行和主机监控：推荐 `minirobot_manage`
 - 管理远端机器和节点间通信等：推荐 `minirobot`
@@ -66,9 +66,8 @@ sudo 4755 /usr/local/bin/minirobot_info # setuid位，执行以文件所有者�
 ##### 1.2.1.工具部署
 工具推荐以系统服务的形式部署运行，最高用户权限。
 
-- [ ] 对提交到本地的任务（远端节点或者本地触发）进行处理。
-
 ##### 1.2.1.本地任务管理
+- [ ] 对提交到本地的任务（远端节点或者本地触发）进行队列处理
 - [ ] 消费任务队列，解析任务信息，更新并存储任务日志
 - [ ] 执行本机命令，获取命令结果、返回信息
 - [ ] 支持`json`输出
@@ -77,7 +76,6 @@ sudo 4755 /usr/local/bin/minirobot_info # setuid位，执行以文件所有者�
 - [ ] 磁盘不足监控
 - [ ] 新增开放端口监控
 - [ ] 任务异常监控
-- [ ] 系统资源监控
 - [ ] 系统气泡告警
 
 ### 2.网络功能
@@ -144,7 +142,7 @@ global/teardown
 ![](https://cdn.jsdelivr.net/gh/gh503/CDN@latest/shotimg/integration_test_details.png)
 
 ## 项目开源计划
-- [x] `Cargo`包平台`crate.io`: [minirobot](https://crates.io/crates/minirobot)
+- [x] `Cargo`包平台: [minirobot](https://crates.io/crates/minirobot)
 - [ ] `CompassCI`平台测试
 - [ ] `openEuler`社区
 - [ ] `Linux`社区
